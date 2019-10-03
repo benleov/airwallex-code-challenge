@@ -35,7 +35,6 @@ class AlertProcessor {
             val globalWindow = globalWindows.getOrPut(it.currencyPair) { LinkedList() }
             globalWindow.add(it)
 
-            // TODO: an alerter can only handle ONE currency pair at this point.
             alerters.forEach { alerter ->
 
                 if (globalWindow.size >= alerter.requiredPeriods) {
@@ -46,6 +45,7 @@ class AlertProcessor {
                             && meta.alerter.javaClass.name == alerter.javaClass.name
                     }
 
+                    // new instance of alerter for each currency pair
                     if (alerterMeta == null) {
                         alerterMeta = AlerterMeta(it.currencyPair, alerter.clone())
                         alertWindowIndexes.add(alerterMeta)
@@ -78,6 +78,9 @@ class AlertProcessor {
         }
     }
 
+    /**
+     * Called by the command line in App class.
+     */
     fun start(rates: List<CurrencyConversionRate>) {
         val alerters = listOf(
             MovingAverageAlerter( 301, 10.0),
