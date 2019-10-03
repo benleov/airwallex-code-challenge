@@ -3,6 +3,9 @@ package com.airwallex.codechallenge.input
 import java.time.Instant
 import java.time.Instant.now
 
+/**
+ * Constructs mock conversion rates.
+ */
 class InputBuilder(
     private val periods: Int = 50
 ) {
@@ -50,17 +53,17 @@ class InputBuilder(
     }
     /**
      * Build a list of conversion rates for a single pair that increases linearly with a spike increase every
-     * interval (basically a slope with steps).
+     * interval (basically a slope with steps that increase absolutely but relatively constant to the total).
      */
     fun buildLinearWithPercentageSpikeEveryInterval(
         interval: Int,
         start: Instant = now(),
         percentageSpike: Double,
-        linearIncrement: Double
+        linearIncrement: Double,
+        currencyPair: String = "AUDNZD"
     ): List<CurrencyConversionRate> {
 
-        val currencyPair = "AUDNZ"
-        var rate = linearIncrement
+        var rate = 0.0
 
         return (1 until periods + 1).map { index ->
 

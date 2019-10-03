@@ -1,7 +1,6 @@
 package com.airwallex.codechallenge.input
 
 import com.airwallex.codechallenge.AlertProcessor
-import com.airwallex.codechallenge.alerters.Alerter
 import com.airwallex.codechallenge.alerters.MovingAverageAlerter
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -10,10 +9,30 @@ import java.time.Instant
 class MovingAverageAlerterTests {
 
     @Test
+    fun `test simple fixed trend results in no alert`() {
+        val start = Instant.parse("2000-01-01T00:00:00.000Z")
+
+        val movingAveragePeriods = 5
+        val alertThreshold = 0.1
+        val totalPeriods = 100
+
+        val rates = InputBuilder(totalPeriods).buildLinearTrend(0, start)
+
+        val alerts = mutableListOf<Alert>()
+
+        AlertProcessor().process(
+            rates,
+            listOf(MovingAverageAlerter(movingAveragePeriods, alertThreshold))
+        ) { alerts.add(it) }
+
+        assertThat(alerts).isEmpty()
+    }
+
+    @Test
     fun `test small linear increment produces no alarms`() {
         val startTime = Instant.parse("2000-01-01T00:00:00.000Z")
         val totalPeriods = 50L
-        val movingAveragePeriods = 5
+        val movingAverageLength = 5
         val alertThreshold = 5.0
 
         // 1% with relatively decreasing increase
@@ -26,7 +45,7 @@ class MovingAverageAlerterTests {
 
         AlertProcessor().process(
             rates,
-            listOf<Alerter>(MovingAverageAlerter(movingAveragePeriods, alertThreshold))
+            listOf(MovingAverageAlerter(movingAverageLength, alertThreshold))
         ) { alerts.add(it) }
 
         assertThat(alerts).isNotNull
@@ -38,7 +57,7 @@ class MovingAverageAlerterTests {
         val startTime = Instant.parse("2000-01-01T00:00:00.000Z")
 
         val totalPeriods = 5L
-        val requiredPeriods = 5 // moving average of 4
+        val movingAverageLength = 4
         val alertThreshold = 5.0
         val increment = 1
         val startRate = 1.0
@@ -50,7 +69,7 @@ class MovingAverageAlerterTests {
 
         AlertProcessor().process(
             rates,
-            listOf<Alerter>(MovingAverageAlerter(requiredPeriods, alertThreshold))
+            listOf(MovingAverageAlerter(movingAverageLength, alertThreshold))
         ) { alerts.add(it) }
 
         assertThat(alerts).isNotNull
@@ -66,8 +85,8 @@ class MovingAverageAlerterTests {
     fun `test fixed rate with fixed spikes produces alarm per spike`() {
         val startTime = Instant.parse("2000-01-01T00:00:00.000Z")
 
-        val totalPeriods = 20L
-        val requiredPeriods = 10 // moving average of 9
+        val totalPeriods = 21L
+        val movingAverageLength = 9
         val alertThreshold = 70.0
         val interval = 10
         val fixedRate = 1.0
@@ -80,7 +99,7 @@ class MovingAverageAlerterTests {
 
         AlertProcessor().process(
             rates,
-            listOf<Alerter>(MovingAverageAlerter(requiredPeriods, alertThreshold))
+            listOf(MovingAverageAlerter(movingAverageLength, alertThreshold))
         ) { alerts.add(it) }
 
         assertThat(alerts).isNotNull

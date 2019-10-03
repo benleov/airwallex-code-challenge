@@ -9,9 +9,9 @@ import kotlin.math.absoluteValue
  * specify 6.
  */
 class MovingAverageAlerter(
-    requiredPeriods: Int,
+    movingAverageLength: Int,
     private val percentageAlertThreshold: Double
-) : Alerter(requiredPeriods) {
+) : Alerter(movingAverageLength + 1) {
 
     /**
      * Produces an alert when the spot rate for a currency pair changes by more than 10% from the 5 minute average
@@ -24,7 +24,7 @@ class MovingAverageAlerter(
             .subList(0, rates.size - 1)
             .map { it.rate }
             .reduce { acc, next -> acc + next }
-            .toDouble() / (requiredPeriods - 1)
+            .toDouble() / (rates.size - 1)
 
         val latestRate = rates.last()
 

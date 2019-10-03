@@ -1,13 +1,32 @@
 package com.airwallex.codechallenge.input
 
 import com.airwallex.codechallenge.AlertProcessor
-import com.airwallex.codechallenge.alerters.Alerter
 import com.airwallex.codechallenge.alerters.TrendingAlerter
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.time.Instant
 
 class TrendingAlerterTests {
+
+    @Test
+    fun `test simple fixed trend results in no alert`() {
+        val start = Instant.parse("2000-01-01T00:00:00.000Z")
+        val minimumTrendPeriod = 5L
+        val throttlePeriod = 6
+
+        val totalPeriods = 100
+
+        val rates = InputBuilder(totalPeriods).buildLinearTrend(0, start)
+
+        val alerts = mutableListOf<Alert>()
+
+        AlertProcessor().process(
+            rates,
+            listOf(TrendingAlerter(minimumTrendPeriod, throttlePeriod))
+        ) { alerts.add(it) }
+
+        assertThat(alerts).isEmpty()
+    }
 
     @Test
     fun `test simple rising linear trend results in one alert`() {
@@ -25,7 +44,7 @@ class TrendingAlerterTests {
 
         AlertProcessor().process(
             rates,
-            listOf<Alerter>(TrendingAlerter(minimumTrendPeriod, throttlePeriod))
+            listOf(TrendingAlerter(minimumTrendPeriod, throttlePeriod))
         ) { alerts.add(it) }
 
         assertThat(alerts).isNotNull
@@ -51,7 +70,7 @@ class TrendingAlerterTests {
 
         AlertProcessor().process(
             rates,
-            listOf<Alerter>(TrendingAlerter(minimumTrendPeriod, throttlePeriod))
+            listOf(TrendingAlerter(minimumTrendPeriod, throttlePeriod))
         ) { alerts.add(it) }
 
         assertThat(alerts).isNotNull
@@ -77,7 +96,7 @@ class TrendingAlerterTests {
 
         AlertProcessor().process(
             rates,
-            listOf<Alerter>(TrendingAlerter(minimumTrendPeriod, throttlePeriod))
+            listOf(TrendingAlerter(minimumTrendPeriod, throttlePeriod))
         ) { alerts.add(it) }
 
         assertThat(alerts).isNotNull
@@ -86,8 +105,9 @@ class TrendingAlerterTests {
         alerts.forEachIndexed { index, alert ->
 
             assertThat(alert.alert).isEqualTo("rising")
-            // first alert is unthrottled
-            if(index == 0) {
+
+            // first alert is unthrottled so should occur as soon as the minimum trend is reached
+            if (index == 0) {
                 assertThat(alert.seconds).isEqualTo(minimumTrendPeriod)
                 assertThat(alert.timestamp).isEqualTo(start.plusSeconds(minimumTrendPeriod + 1))
             } else {
@@ -120,7 +140,7 @@ class TrendingAlerterTests {
 
         AlertProcessor().process(
             rates,
-            listOf<Alerter>(TrendingAlerter(minimumTrendPeriod, throttlePeriod))
+            listOf(TrendingAlerter(minimumTrendPeriod, throttlePeriod))
         ) { alerts.add(it) }
 
         assertThat(alerts).isNotNull

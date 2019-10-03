@@ -34,7 +34,8 @@ class TrendingAlerter(
 
         if (lastConversionRate == null) {
             lastConversionRate = currentRate
-        } else {
+        } else if (currentRate.rate != lastConversionRate!!.rate) {
+
             val trendingUp = currentRate.rate > lastConversionRate!!.rate
 
             if (currentTrend == null) {
@@ -60,6 +61,9 @@ class TrendingAlerter(
                     )
                 }
             }
+        } else {
+            // pair is identical to last period
+            lastConversionRate = currentRate
         }
         return null
     }

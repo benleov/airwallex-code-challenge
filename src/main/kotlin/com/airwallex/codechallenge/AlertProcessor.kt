@@ -83,12 +83,12 @@ class AlertProcessor {
      * Called by the command line in App class.
      */
     fun start(rates: List<CurrencyConversionRate>) {
-        val alerters = listOf(
-            MovingAverageAlerter( 2, 10.0),
-            TrendingAlerter(2, 60)
-        )
 
         val mapper = Mapper()
-        process(rates, alerters) { println(mapper.write(it)) }
+
+        process(rates, listOf(
+            MovingAverageAlerter( 300, 10.0), // 5 minute average, 10% threshold
+            TrendingAlerter(900, 60) // 15 minutes, 1 minute throttle
+        )) { println(mapper.write(it)) }
     }
 }
