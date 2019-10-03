@@ -66,9 +66,9 @@ class MovingAverageAlerterTests {
     fun `test fixed rate with fixed spikes produces alarm per spike`() {
         val startTime = Instant.parse("2000-01-01T00:00:00.000Z")
 
-        val totalPeriods = 100L
-        val requiredPeriods = 10 // moving average of 4
-        val alertThreshold = 5.0
+        val totalPeriods = 20L
+        val requiredPeriods = 10 // moving average of 9
+        val alertThreshold = 70.0
         val interval = 10
         val fixedRate = 1.0
         val fixedSpike = 10.0
@@ -83,15 +83,11 @@ class MovingAverageAlerterTests {
             listOf<Alerter>(MovingAverageAlerter(requiredPeriods, alertThreshold))
         ) { alerts.add(it) }
 
-        println(alerts)
-
         assertThat(alerts).isNotNull
-        assertThat(alerts).size().isEqualTo(1)
+        assertThat(alerts).size().isEqualTo(2)
 
-        // the last value will alert as average is 2.5 and the value is 5; a 66% increase which is above the threshold
         val alert = alerts.first()
         assertThat(alert.alert).isEqualTo("spotChange")
-        assertThat(alert.timestamp).isEqualTo(startTime.plusSeconds(totalPeriods))
+        assertThat(alerts.map { alert }.toSet()).size().isEqualTo(1)
     }
-
 }

@@ -27,6 +27,28 @@ class InputBuilder(
     }
 
     /**
+     * Flat rate with periodic spikes.
+     */
+    fun buildFixedRateWithFixedSpikeEveryInterval(
+        interval: Int,
+        start: Instant = now(),
+        fixedSpike: Double,
+        fixedRate: Double,
+        currencyPair: String = "AUDNZD"
+    ): List<CurrencyConversionRate> {
+
+        return (1 until periods + 1).map { index ->
+
+            val rate = if (index % interval == 0) fixedSpike else fixedRate
+
+            CurrencyConversionRate(
+                timestamp = start.plusSeconds(index.toLong()),
+                currencyPair = currencyPair,
+                rate = rate
+            )
+        }
+    }
+    /**
      * Build a list of conversion rates for a single pair that increases linearly with a spike increase every
      * interval (basically a slope with steps).
      */
@@ -52,28 +74,4 @@ class InputBuilder(
             )
         }
     }
-
-    /**
-     * Flat rate with periodic spikes.
-     */
-    fun buildFixedRateWithFixedSpikeEveryInterval(
-        interval: Int,
-        start: Instant = now(),
-        fixedSpike: Double,
-        fixedRate: Double,
-        currencyPair: String = "AUDNZD"
-    ): List<CurrencyConversionRate> {
-
-        return (1 until periods + 1).map { index ->
-
-            val rate = if (index % interval == 0) fixedSpike else fixedRate
-
-            CurrencyConversionRate(
-                timestamp = start.plusSeconds(index.toLong()),
-                currencyPair = currencyPair,
-                rate = rate
-            )
-        }
-    }
-
 }
