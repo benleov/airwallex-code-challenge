@@ -5,6 +5,7 @@ import com.airwallex.codechallenge.alerters.MovingAverageAlerter
 import com.airwallex.codechallenge.alerters.TrendingAlerter
 import com.airwallex.codechallenge.input.Alert
 import com.airwallex.codechallenge.input.CurrencyConversionRate
+import com.airwallex.codechallenge.input.Mapper
 import java.util.*
 
 class AlertProcessor {
@@ -83,9 +84,11 @@ class AlertProcessor {
      */
     fun start(rates: List<CurrencyConversionRate>) {
         val alerters = listOf(
-            MovingAverageAlerter( 301, 10.0),
-            TrendingAlerter(900, 60)
+            MovingAverageAlerter( 2, 10.0),
+            TrendingAlerter(2, 60)
         )
-        process(rates, alerters) { println(it) }
+
+        val mapper = Mapper()
+        process(rates, alerters) { println(mapper.write(it)) }
     }
 }

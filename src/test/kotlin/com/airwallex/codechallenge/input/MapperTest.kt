@@ -8,7 +8,7 @@ import java.time.Instant
 import java.util.stream.Stream.of
 import kotlin.streams.toList
 
-internal class ReaderTest {
+internal class MapperTest {
 
     companion object {
         private const val VALID_JSON =
@@ -18,16 +18,16 @@ internal class ReaderTest {
     @Nested
     inner class ReadStreamOfString {
 
-        private lateinit var reader: Reader
+        private lateinit var mapper: Mapper
 
         @BeforeEach
         fun setup() {
-            reader = Reader()
+            mapper = Mapper()
         }
 
         @Test
         fun `when stream is valid`() {
-            val result = reader.read(of(VALID_JSON)).toList()
+            val result = mapper.read(of(VALID_JSON)).toList()
             assertThat(result).isNotEmpty
             assertThat(result).first().isEqualTo(
                 CurrencyConversionRate(
