@@ -2,7 +2,6 @@ package com.airwallex.codechallenge.alerters
 
 import com.airwallex.codechallenge.input.Alert
 import com.airwallex.codechallenge.input.CurrencyConversionRate
-import java.lang.RuntimeException
 import java.time.Duration
 import java.time.Instant
 
@@ -12,7 +11,7 @@ class TrendingAlerter(
     private val throttlePeriodSeconds: Int = 60
 ) : Alerter(1) {
 
-    private var currentTrend :Trend? = null
+    private var currentTrend: Trend? = null
     private var lastConversionRate: CurrencyConversionRate? = null
     private var lastAlertTime: Instant? = null
 
@@ -25,7 +24,7 @@ class TrendingAlerter(
      */
     override fun hasAlert(currencyPair: String, rates: List<CurrencyConversionRate>): Alert? {
 
-        if(rates.size != 1) {
+        if (rates.size != 1) {
             throw RuntimeException("Trending alerter expects only one rate")
         }
 
@@ -51,7 +50,11 @@ class TrendingAlerter(
 
             if (trendLength >= minimumTrendLength) {
                 // only once per minute
-                if(lastAlertTime == null || Duration.between(lastAlertTime, currentTime).seconds >= throttlePeriodSeconds) {
+                if (lastAlertTime == null || Duration.between(
+                        lastAlertTime,
+                        currentTime
+                    ).seconds >= throttlePeriodSeconds
+                ) {
                     lastAlertTime = currentTime
                     return Alert(
                         currentTime,
@@ -67,6 +70,7 @@ class TrendingAlerter(
         }
         return null
     }
+
     override fun clone(): Alerter {
         return TrendingAlerter(minimumTrendLength, throttlePeriodSeconds)
     }

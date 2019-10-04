@@ -5,13 +5,12 @@ import com.airwallex.codechallenge.input.CurrencyConversionRate
 import kotlin.math.absoluteValue
 
 /**
- * Required periods is moving average periods size plus one for the tested period. I.e to test a moving average of 5
- * specify 6.
+ *
  */
 class MovingAverageAlerter(
     movingAverageLength: Int,
     private val percentageAlertThreshold: Double
-) : Alerter(movingAverageLength + 1) {
+) : Alerter(movingAverageLength + 1) { // required periods is moving average periods size plus one for the tested period
 
     /**
      * Produces an alert when the spot rate for a currency pair changes by more than 10% from the 5 minute average
