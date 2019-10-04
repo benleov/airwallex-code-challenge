@@ -14,56 +14,66 @@ class AlertProcessorTests {
         val startTime = Instant.parse("2000-01-01T00:00:00.000Z")
 
         // moving average
-        val requiredPeriods = 10 // moving average of 9
-        val alertThreshold = 70.0
+        val movingAverageLength = 5
+        val alertThreshold = 50.0
 
-        // trending
+        // trending (rising/falling)
         val minimumTrendPeriod = 5L
         val throttlePeriod = 10
 
         // rates
         val totalPeriods = 20L
-        val linearIncrement = 1.0
+        val percentageIncrement = 0.01
 
-        val spikeInterval = 10   // spike interval
-        val percentageSpike = 10.0
+        val spikeInterval = 10
+        val percentageSpike = 70.0
 
         val audNzdRates = InputBuilder((totalPeriods).toInt())
-            .buildLinearWithPercentageSpikeEveryInterval(spikeInterval, startTime, percentageSpike, linearIncrement, "AUDNZD")
+            .buildPercentageIncreaseWithPercentageSpikeEveryInterval(
+                spikeInterval, startTime, percentageSpike, percentageIncrement, "AUDNZD"
+            )
         val cnyaudRates = InputBuilder((totalPeriods).toInt())
-            .buildLinearWithPercentageSpikeEveryInterval(spikeInterval, startTime, percentageSpike, linearIncrement, "CNYAUD")
+            .buildPercentageIncreaseWithPercentageSpikeEveryInterval(
+                spikeInterval, startTime, percentageSpike, percentageIncrement, "CNYAUD"
+            )
 
         val rates = mutableListOf<CurrencyConversionRate>().also {
             it.addAll(audNzdRates)
             it.addAll(cnyaudRates)
         }
 
-        rates.forEach { println(it) }
-
-        println()
-
         val alerts = mutableListOf<Alert>()
 
         AlertProcessor().process(
             rates,
             listOf(
-                MovingAverageAlerter(requiredPeriods, alertThreshold),
+                MovingAverageAlerter(movingAverageLength, alertThreshold),
                 TrendingAlerter(minimumTrendPeriod, throttlePeriod)
             )
         ) { alerts.add(it) }
 
         // there should be 4 trending alerts; one at 5 seconds for each currency (initial non throttled)
-        // and one at 15 seconds
-
-        // there should be
-
-        alerts.forEach { println(it) }
+        // and one at 15 seconds (throttle is 10 seconds), and two spot changes, one for each spike
 
         assertThat(alerts).isNotNull
-        assertThat(alerts).size().isEqualTo(4)
+        assertThat(alerts).size().isEqualTo(8)
 
-        val alert = alerts.first()
-        assertThat(alert.alert).isEqualTo("spotChange")
-        assertThat(alerts.map { alert }.toSet()).size().isEqualTo(1)
+
+        for (currencyPair in listOf("AUDNZD", "CNYAUD")) {
+            val currencyAlerts = alerts.filter { it.currencyPair == currencyPair }
+
+            val spotChanges = currencyAlerts.filter { it.alert == "spotChange" }
+            assertThat(spotChanges.size).isEqualTo(2)
+            assertThat(spotChanges.first().timestamp).isEqualTo(Instant.parse("2000-01-01T00:00:10Z"))
+            assertThat(spotChanges.last().timestamp).isEqualTo(Instant.parse("2000-01-01T00:00:20Z"))
+
+            val trendingAlerts = currencyAlerts.filter { it.alert == "rising" }
+            assertThat(trendingAlerts.size).isEqualTo(2)
+            assertThat(trendingAlerts.first().timestamp).isEqualTo(Instant.parse("2000-01-01T00:00:06Z"))
+            assertThat(trendingAlerts.first().seconds).isEqualTo(5)
+
+            assertThat(trendingAlerts.last().timestamp).isEqualTo(Instant.parse("2000-01-01T00:00:16Z"))
+            assertThat(trendingAlerts.last().seconds).isEqualTo(15)
+        }
     }
 }

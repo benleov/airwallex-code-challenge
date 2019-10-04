@@ -41,9 +41,9 @@ class AlertProcessor {
                 if (globalWindow.size >= alerter.requiredPeriods) {
                     // enough periods to test this alert, get the start index
 
-                    var alerterMeta = alertWindowIndexes.find {
-                            meta -> meta.currencyPair == it.currencyPair
-                            && meta.alerter.javaClass.name == alerter.javaClass.name
+                    var alerterMeta = alertWindowIndexes.find { meta ->
+                        meta.currencyPair == it.currencyPair
+                                && meta.alerter.javaClass.name == alerter.javaClass.name
                     }
 
                     // new instance of alerter for each currency pair
@@ -86,9 +86,11 @@ class AlertProcessor {
 
         val mapper = Mapper()
 
-        process(rates, listOf(
-            MovingAverageAlerter( 300, 10.0), // 5 minute average, 10% threshold
-            TrendingAlerter(900, 60) // 15 minutes, 1 minute throttle
-        )) { println(mapper.write(it)) }
+        process(
+            rates, listOf(
+                MovingAverageAlerter(300, 10.0), // 5 minute average, 10% threshold
+                TrendingAlerter(900, 60) // 15 minutes, 1 minute throttle
+            )
+        ) { println(mapper.write(it)) }
     }
 }

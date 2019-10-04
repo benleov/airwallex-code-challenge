@@ -20,11 +20,13 @@ class MovingAverageAlerter(
     override fun hasAlert(currencyPair: String, rates: List<CurrencyConversionRate>): Alert? {
 
         // calculate moving average over defined period, excluding the latest period
-        val average = rates
-            .subList(0, rates.size - 1)
+
+        val averageValues = rates.subList(0, rates.size - 1)
+
+        val average = averageValues
             .map { it.rate }
             .reduce { acc, next -> acc + next }
-            .toDouble() / (rates.size - 1)
+            .toDouble() / (rates.size - 1).toDouble()
 
         val latestRate = rates.last()
 

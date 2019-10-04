@@ -18,7 +18,7 @@ class TrendingAlerter(
 
     data class Trend(val trendingUp: Boolean, val start: Instant)
 
-    /** Produces an alert when the spot rate has been rising/falling for 15 minutes.
+    /** Produces an alert when the spot rate has been rising/falling for minimumTrendLength seconds.
      *
      * This alert is throttled to only output once per throttlePeriodSeconds and reports the length of time
      * of the rise/fall in seconds.

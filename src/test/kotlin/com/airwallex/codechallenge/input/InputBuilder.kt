@@ -52,23 +52,23 @@ class InputBuilder(
         }
     }
     /**
-     * Build a list of conversion rates for a single pair that increases linearly with a spike increase every
-     * interval (basically a slope with steps that increase absolutely but relatively constant to the total).
+     *
      */
-    fun buildLinearWithPercentageSpikeEveryInterval(
-        interval: Int,
+    fun buildPercentageIncreaseWithPercentageSpikeEveryInterval(
+        spikeInterval: Int,
         start: Instant = now(),
         percentageSpike: Double,
-        linearIncrement: Double,
+        percentageIncrement: Double,
         currencyPair: String = "AUDNZD"
     ): List<CurrencyConversionRate> {
 
-        var rate = 0.0
+        var rate = 1.0
 
         return (1 until periods + 1).map { index ->
 
-            // every interval increase by the linear increment as well as a percentage of the total
-            rate += if (index % interval == 0) linearIncrement + ((percentageSpike / 100) * rate) else linearIncrement
+            // every interval increase by the linear increment as well a percentage spike of the rate as it was
+            // previously
+            rate += if (index % spikeInterval == 0) (percentageIncrement * rate) + ((percentageSpike / 100) * (rate)) else percentageIncrement * rate
 
             CurrencyConversionRate(
                 timestamp = start.plusSeconds(index.toLong()),
