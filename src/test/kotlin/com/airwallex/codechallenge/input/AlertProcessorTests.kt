@@ -9,6 +9,47 @@ import java.time.Instant
 
 class AlertProcessorTests {
 
+   @Test
+   fun `test multiple common processors and multiple currencies`() {
+     val startTime = Instant.parse("2000-01-01T00:00:00.000Z")
+
+     // moving average
+     val movingAverageLength = 5
+     val alertThreshold = 50.0
+
+     // rates
+     val totalPeriods = 20L
+     val percentageIncrement = 0.01
+
+     val spikeInterval = 10
+     val percentageSpike = 70.0
+
+     val audNzdRates = InputBuilder((totalPeriods).toInt())
+       .buildPercentageIncreaseWithPercentageSpikeEveryInterval(
+         spikeInterval, startTime, percentageSpike, percentageIncrement, "AUDNZD"
+       )
+     val cnyaudRates = InputBuilder((totalPeriods).toInt())
+       .buildPercentageIncreaseWithPercentageSpikeEveryInterval(
+         spikeInterval, startTime, percentageSpike, percentageIncrement, "CNYAUD"
+       )
+
+     val rates = mutableListOf<CurrencyConversionRate>().also {
+       it.addAll(audNzdRates)
+       it.addAll(cnyaudRates)
+     }
+
+     val alerts = mutableListOf<Alert>()
+
+     AlertProcessor().process(
+       rates,
+       listOf(
+         MovingAverageAlerter(movingAverageLength, alertThreshold),
+         MovingAverageAlerter(movingAverageLength, alertThreshold),
+         MovingAverageAlerter(movingAverageLength, alertThreshold)
+       )
+     ) { alerts.add(it) }
+   }
+
     @Test
     fun `test multiple currencies and multiple processors`() {
         val startTime = Instant.parse("2000-01-01T00:00:00.000Z")
@@ -57,7 +98,6 @@ class AlertProcessorTests {
 
         assertThat(alerts).isNotNull
         assertThat(alerts).size().isEqualTo(8)
-
 
         for (currencyPair in listOf("AUDNZD", "CNYAUD")) {
             val currencyAlerts = alerts.filter { it.currencyPair == currencyPair }

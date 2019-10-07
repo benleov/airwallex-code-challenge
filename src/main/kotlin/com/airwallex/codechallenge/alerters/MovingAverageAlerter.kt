@@ -22,6 +22,7 @@ class MovingAverageAlerter(
 
         val averageValues = rates.subList(0, rates.size - 1)
 
+
         val average = averageValues
             .map { it.rate }
             .reduce { acc, next -> acc + next }
@@ -29,7 +30,7 @@ class MovingAverageAlerter(
 
         val latestRate = rates.last()
 
-        // check difference between moving average and latest period
+        // check percentage difference between moving average and latest period
         val difference = (((average - latestRate.rate) / ((average + latestRate.rate) / 2)).absoluteValue)
 
         if (difference >= (percentageAlertThreshold / 100)) {
