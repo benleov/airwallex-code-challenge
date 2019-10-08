@@ -20,6 +20,8 @@ class MovingAverageAlerter(
      * for the specified currency pair.
      *
      * Note: it is expected that this is called with a moving window of rates.
+     *
+     * TODO: could check that the last values timestamp correlates with the current last values timestamp (ie. 1 second increment)
      */
     override fun hasAlert(currencyPair: String, rates: List<CurrencyConversionRate>): Alert? {
 
