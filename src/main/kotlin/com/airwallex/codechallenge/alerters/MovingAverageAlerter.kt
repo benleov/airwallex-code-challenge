@@ -12,24 +12,41 @@ class MovingAverageAlerter(
     private val percentageAlertThreshold: Double
 ) : Alerter(movingAverageLength + 1) { // required periods is moving average periods size plus one for the tested period
 
+    var sum: Double? = null
+    var lastValue: Double? = null
+
     /**
      * Produces an alert when the spot rate for a currency pair changes by more than 10% from the 5 minute average
      * for the specified currency pair.
+     *
+     * Note: it is expected that this is called with a moving window of rates.
+     *
+     * TODO: could check that the last values timestamp correlates with the current last values timestamp (ie. 1 second increment)
      */
     override fun hasAlert(currencyPair: String, rates: List<CurrencyConversionRate>): Alert? {
 
         // calculate moving average over defined period, excluding the latest period
-
         val averageValues = rates.subList(0, rates.size - 1)
 
-        val average = averageValues
+        if(sum == null) {
+          // first time through, calculate the sum
+          sum = averageValues
             .map { it.rate }
             .reduce { acc, next -> acc + next }
-            .toDouble() / (rates.size - 1).toDouble()
+        } else {
+          // next time through, don't need to add all the values together, just subtract the last value (which has fallen off the end
+          // of the window), and add the newest one
+          sum = sum!!.minus(lastValue!!)
+          sum = sum!!.plus(averageValues[averageValues.size - 1].rate)
+        }
+
+        lastValue = averageValues.first().rate
+
+        val average = sum!! / (rates.size - 1).toDouble()
 
         val latestRate = rates.last()
 
-        // check difference between moving average and latest period
+        // check percentage difference between moving average and latest period
         val difference = (((average - latestRate.rate) / ((average + latestRate.rate) / 2)).absoluteValue)
 
         if (difference >= (percentageAlertThreshold / 100)) {
@@ -42,5 +59,4 @@ class MovingAverageAlerter(
     override fun clone(): Alerter {
         return MovingAverageAlerter(requiredPeriods, percentageAlertThreshold)
     }
-
 }
